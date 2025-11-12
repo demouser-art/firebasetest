@@ -22,7 +22,7 @@ export async function requestPermissionAndGetToken() {
 
     const token = await getToken(messaging, {
       vapidKey: 'BMxiMayjfgbBPluUbYbbbYnWM4oh5_89l3JsjjmNIrpbur9ZeyWWNxvP1m7AqE_VV5fauiFaxiaYwrs7qXLfSts',
-      serviceWorkerRegistration: await navigator.serviceWorker.register('/firebasetest/firebase-messaging-sw.js'),
+      // serviceWorkerRegistration: await navigator.serviceWorker.register('/firebasetest/firebase-messaging-sw.js'),
     });
 
     console.log('FCM Token:', token);
@@ -61,4 +61,5 @@ async function sendTokenToBackend(token:any) {
 // Handle messages while tab is open
 export function onMessageListener(callback: (payload: any) => void) {
   onMessage(messaging, callback);
+
 }
