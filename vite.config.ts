@@ -4,8 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  // base: '/',
-  base: '/firebasetest/',
+  base: '/',
+  // base: '/firebasetest/',
   plugins: [
     react(),
     tailwindcss(),
@@ -20,8 +20,8 @@ export default defineConfig({
         theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',
-        // start_url: '/',
-        start_url: '/firebasetest/',
+        start_url: '/',
+        // start_url: '/firebasetest/',
         icons: [
           {
             src: '/pwa-192x192.png',
