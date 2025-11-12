@@ -12,16 +12,21 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
-console.log('firebase :',{app,messaging});
+console.log('firebase :', { app, messaging });
 
 // Request notification permission and get FCM token
 export async function requestPermissionAndGetToken() {
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return null;
-
+    const registration = await navigator.serviceWorker.register(
+      // '/firebasetest/firebase-messaging-sw.js',
+      // { scope: '/firebasetest/' }
+      '/firebase-messaging-sw.js', {scope: '/'}
+    );
     const token = await getToken(messaging, {
       vapidKey: 'BMxiMayjfgbBPluUbYbbbYnWM4oh5_89l3JsjjmNIrpbur9ZeyWWNxvP1m7AqE_VV5fauiFaxiaYwrs7qXLfSts',
+      serviceWorkerRegistration: registration,
       // serviceWorkerRegistration: await navigator.serviceWorker.register('/firebasetest/firebase-messaging-sw.js'),
     });
 
@@ -30,7 +35,6 @@ export async function requestPermissionAndGetToken() {
     if (token) {
       // Send token to backend
       await sendTokenToBackend(token);
-      console.log({token});
     }
 
     return token;
@@ -40,8 +44,8 @@ export async function requestPermissionAndGetToken() {
   }
 }
 
-async function sendTokenToBackend(token:any) {
-  console.log({token});
+async function sendTokenToBackend(token: any) {
+  console.log({ token });
   try {
     // Replace with your backend URL to register the token
     // await fetch('http://localhost:3000/register-token', {
@@ -61,5 +65,4 @@ async function sendTokenToBackend(token:any) {
 // Handle messages while tab is open
 export function onMessageListener(callback: (payload: any) => void) {
   onMessage(messaging, callback);
-
 }
