@@ -10,71 +10,53 @@ firebase.initializeApp({
   messagingSenderId: "272266754689",
   appId: "1:272266754689:web:a225bd8f0d24478337eb80"
 });
+
 const messaging = firebase.messaging();
-console.log("service worker",{firebase,messaging});
-// Background notification handler
-messaging.onBackgroundMessage(function (payload) {
+
+messaging.onBackgroundMessage((payload) => {
   console.log('Background message received:', payload);
-  const { title, body } = payload.notification;
-  self.registration.showNotification(title, {
-    body,
-    icon: '/pwa-192x192.png',
-  });
+  const { title, body } = payload.notification || {};
+  if (title && body) {
+    self.registration.showNotification(title, {
+      body,
+      icon: '/pwa-192x192.png',
+    });
+  }
 });
 
-if (workbox) {
-  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+if (typeof workbox !== 'undefined' && workbox.precaching) {
+  try {
+    workbox.precaching.precacheAndRoute([]);
+  } catch (e) {
+    console.warn('Workbox precache skipped:', e);
+  }
 }
 
-
-// Cache Name and Resources to Cache
 const CACHE_NAME = 'my-pwa-cache-v1';
-const URLs_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './pwa-192x192.png'
-];
+const URLs_TO_CACHE = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('Opened cache');
-      for (const url of URLs_TO_CACHE) {
-        try {
-          await cache.add(url);
-        } catch (err) {
-          console.warn('Failed to cache', url, err);
-        }
-      }
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(URLs_TO_CACHE))
   );
 });
 
-// Fetch event - Serve cached assets if offline
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith('/manifest.json') ||
+      url.pathname.includes('firebase-messaging-sw.js') ||
+      url.pathname.includes('service-worker.js')) {
+    return;
+  }
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        // Return cached response if available, else fetch from network
-        return cachedResponse || fetch(event.request);
-      })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
 
-// Activate event - Clean up old caches
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((names) =>
+      Promise.all(names.map((n) => n !== CACHE_NAME && caches.delete(n)))
+    )
   );
-
 });
