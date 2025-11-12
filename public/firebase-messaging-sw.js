@@ -30,21 +30,24 @@ if (workbox) {
 // Cache Name and Resources to Cache
 const CACHE_NAME = 'my-pwa-cache-v1';
 const URLs_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/images/logo.png', // Add other assets you want to cache
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './pwa-192x192.png'
 ];
 
-// Install event - Caching assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(URLs_TO_CACHE);
-      })
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('Opened cache');
+      for (const url of URLs_TO_CACHE) {
+        try {
+          await cache.add(url);
+        } catch (err) {
+          console.warn('Failed to cache', url, err);
+        }
+      }
+    })
   );
 });
 
@@ -73,4 +76,5 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+
 });
